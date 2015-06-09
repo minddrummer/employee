@@ -94,7 +94,7 @@ def gene_normal_with_limit(mean, std, size, limit, rounding = 0):
 	i = 1
 	res = []
 	while i <= size:
-		tmp = round(np.random.normal(mean, std), 0)
+		tmp = round(np.random.normal(mean, std), rounding)
 		if tmp>= limit[0] and tmp <= limit[1]:
 			res.append(tmp)
 			i += 1
@@ -153,8 +153,8 @@ col99 = [key for key in col_dict if col_dict[key][1] == 99]
 #  --'num_family',
 #  --'gender',
 #  --'age',
-#  'change_job_num',
-#  'leave_num_cur_company']
+#  --'change_job_num',
+#  --'leave_num_cur_company']
 
 
 df99 = pd.DataFrame()
@@ -198,5 +198,37 @@ df99.loc[:, 'location'] = 1
 df99.loc[:, 'change_job_num'] = gene_multinom(N, [0.8,0.1,0.04,0.03,0.02,0.01], start_value=0, printing = False)
 #leave_num_cur_company
 df99.loc[:, 'leave_num_cur_company'] = gene_multinom(N, [0.95,0.04,0.01], start_value=0, printing = False)
+
+
+#although they are tested 12month for once, for now, we just have one record for each employee
+col12 = [key for key in col_dict if col_dict[key][1] == 12]
+# ['motivation',
+#  'change_loc_num',
+#  'vacation_days',
+#  'pos_leave_rate',
+#  'ave_leave_persons_cur_dept',
+#  'equity_cash',
+#  'work_years',
+#  'equity',
+#  'ability_tendency',
+#  'individual_value_company_culture',
+#  'industry_leave_rate',
+#  'training_time',
+#  'application_num_leave_cur_company',
+#  'dept',
+#  'training_num',
+#  'position',
+#  'personality']
+
+df12 = pd.DataFrame()
+#most em for 0, few for 1, very few for 2
+df12.loc[:,'change_loc_num'] = gene_multinom(N, [0.96,0.03,0.01], start_value=0, printing = False)
+#work_years follows normal distribution, with most in the center of 10, with a std of 5
+df12.loc[:,'work_years'] = gene_normal_with_limit(10, 5, N, [0.2, 30], rounding = 1)
+
+
+
+
+
 
 
