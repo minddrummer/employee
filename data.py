@@ -146,10 +146,10 @@ col99 = [key for key in col_dict if col_dict[key][1] == 99]
 #  --'sep_spouse',
 #  --'sep_child',
 #  --'children',
-#  'location',
+#  --'location',
 #  --'city_size',
-#  'sig_event',
-#  'month',
+#  --'sig_event',
+#  --'month',
 #  --'num_family',
 #  --'gender',
 #  --'age',
@@ -190,13 +190,13 @@ def sep_child(x):
 	else:
 		return 0
 df99.loc[:,'sep_child'] = df99.apply(sep_child, axis = 1)
+df99.loc[:, 'sig_event'] = np.NaN
+df99.loc[:, 'month'] = 6
+df99.loc[:, 'location'] = 1
 
-
-
-
-
-
-
-
+#change_job_num  leave_num_cur_company these two factors are *
+df99.loc[:, 'change_job_num'] = gene_multinom(N, [0.8,0.1,0.04,0.03,0.02,0.01], start_value=0, printing = False)
+#leave_num_cur_company
+df99.loc[:, 'leave_num_cur_company'] = gene_multinom(N, [0.95,0.04,0.01], start_value=0, printing = False)
 
 
