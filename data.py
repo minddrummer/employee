@@ -197,37 +197,65 @@ df99.loc[:, 'location'] = 1
 #change_job_num  leave_num_cur_company these two factors are *
 df99.loc[:, 'change_job_num'] = gene_multinom(N, [0.8,0.1,0.04,0.03,0.02,0.01], start_value=0, printing = False)
 #leave_num_cur_company
-df99.loc[:, 'leave_num_cur_company'] = gene_multinom(N, [0.95,0.04,0.01], start_value=0, printing = False)
+df99.loc[:, 'leave_num_cur_company'] = gene_multinom(N, [0.96,0.03,0.01], start_value=0, printing = False)
 
 
 #although they are tested 12month for once, for now, we just have one record for each employee
 col12 = [key for key in col_dict if col_dict[key][1] == 12]
-# ['motivation',
-#  'change_loc_num',
-#  'vacation_days',
-#  'pos_leave_rate',
-#  'ave_leave_persons_cur_dept',
-#  'equity_cash',
-#  'work_years',
-#  'equity',
-#  'ability_tendency',
-#  'individual_value_company_culture',
-#  'industry_leave_rate',
-#  'training_time',
-#  'application_num_leave_cur_company',
-#  'dept',
-#  'training_num',
-#  'position',
-#  'personality']
+# [--'motivation',
+#  --'change_loc_num',
+#  --'vacation_days',
+#  --'pos_leave_rate',
+#  --'ave_leave_persons_cur_dept',
+#  --'equity_cash',
+#  --'work_years',
+#  --'equity',
+#  --'ability_tendency',
+#  --'individual_value_company_culture',
+#  --'industry_leave_rate',
+#  --'training_time',
+#  --'application_num_leave_cur_company',
+#  --'dept',
+#  --'training_num',
+#  --'position',
+#  --'personality']
 
 df12 = pd.DataFrame()
-#most em for 0, few for 1, very few for 2
-df12.loc[:,'change_loc_num'] = gene_multinom(N, [0.96,0.03,0.01], start_value=0, printing = False)
+#most em for 0, few for 1, very few for 2, very very few for 3
+df12.loc[:,'change_loc_num'] = gene_multinom(N, [0.92,0.05,0.02,0.01], start_value=0, printing = False)
 #work_years follows normal distribution, with most in the center of 10, with a std of 5
 df12.loc[:,'work_years'] = gene_normal_with_limit(10, 5, N, [0.2, 30], rounding = 1)
-
-
-
+#different number represents for different postions
+df12.loc[:,'position'] = gene_multinom(N, [0.1]*10, start_value=0, printing = False)
+#different dept represents for different dept
+df12.loc[:,'dept'] = gene_multinom(N, [0.2]*5, start_value=0, printing = False)
+#most are 0; very few are 1
+df12.loc[:,'application_num_leave_cur_company'] = gene_multinom(N, [0.992,0.008], start_value=0, printing = False)
+#ave_leave_persons_cur_dept for each dept?
+df12.loc[:,'ave_leave_persons_cur_dept'] = df12.loc[:,'dept'].map({0:10,1:4,2:9,3:7,4:5})
+#equity is a normal distribution
+df12.loc[:,'equity'] = gene_normal_with_limit(800, 500, N, [0, 3000], rounding = 0)
+#equity_cash
+df12.loc[:,'equity_cash'] = df12.loc[:,'equity'].apply(lambda x: x*0.12)
+#vacation_days
+df12.loc[:,'vacation_days'] = gene_normal_with_limit(10, 4, N, [0.2, 30], rounding = 0)
+#training_num
+df12.loc[:,'training_num'] = df12.loc[:,'dept'].map({0:5,1:4,2:4,3:6,4:2})
+#training_time
+df12.loc[:,'training_time'] = df12.loc[:,'training_num'].apply(lambda x: x*7)
+#industry_leave_rate
+df12.loc[:,'industry_leave_rate'] = 0.08
+#pos_leave_rate
+df12.loc[:,'pos_leave_rate'] = df12.loc[:,'position'].map(dict(zip(range(10), \
+	gene_normal_with_limit(0.1, 0.05, len(range(10)), [0.0001, 0.2], rounding = 2))))
+#ability_tendency:similar to IQ
+df12.loc[:,'ability_tendency'] = gene_normal_with_limit(100, 10, N, [70, 150], rounding = 0)
+#individual_value_company_culture
+df12.loc[:,'individual_value_company_culture'] = gene_normal_with_limit(50, 5, N, [0.1, 150], rounding = 1)
+#personality
+df12.loc[:,'personality'] = gene_normal_with_limit(100, 10, N, [60, 150], rounding = 0)
+#motivation
+df12.loc[:,'motivation'] = gene_normal_with_limit(50, 10, N, [0.1, 100], rounding = 0)
 
 
 
