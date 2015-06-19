@@ -98,7 +98,7 @@ def gene_normal_with_limit(mean, std, size, limit, rounding = 0):
 		if tmp>= limit[0] and tmp <= limit[1]:
 			res.append(tmp)
 			i += 1
-	return res		
+	return np.array(res)		
 
 def gene_multinom(size, ratio_lst, start_value=0, printing = False):
 	'''ratio_lst is the percent for each label.
@@ -237,8 +237,7 @@ df12.loc[:,'ave_leave_persons_cur_dept'] = df12.loc[:,'dept'].map({0:10,1:4,2:9,
 df12.loc[:,'equity'] = gene_normal_with_limit(800, 500, N, [0, 3000], rounding = 0)
 #equity_cash
 df12.loc[:,'equity_cash'] = df12.loc[:,'equity'].apply(lambda x: x*0.12)
-#vacation_days
-df12.loc[:,'vacation_days'] = gene_normal_with_limit(10, 4, N, [0.2, 30], rounding = 0)
+#vacation_days2.52.
 #training_num
 df12.loc[:,'training_num'] = df12.loc[:,'dept'].map({0:5,1:4,2:4,3:6,4:2})
 #training_time
@@ -256,6 +255,132 @@ df12.loc[:,'individual_value_company_culture'] = gene_normal_with_limit(50, 5, N
 df12.loc[:,'personality'] = gene_normal_with_limit(100, 10, N, [60, 150], rounding = 0)
 #motivation
 df12.loc[:,'motivation'] = gene_normal_with_limit(50, 10, N, [0.1, 100], rounding = 0)
+
+
+#`````````````combine df12 and df99, and add the results;make the results corresponding with the variables in df12 and df99
+#for further analysis, it is better to simulate given the results
+df = pd.concat([df12,df99], axis = 1, join = 'outer')
+df.loc[:,'res'] = 0
+#the 4 variables in 12 and 99 matter are:
+# sep_spouse
+# sep_child
+# change_job_num
+# ave_leave_persons_cur_dept
+def gen_res(df0):
+	np.random.seed(786)
+	s1 =df0.apply(lambda x: gene_multinom_one_label([0.5,0.5], 0) if x.sep_spouse == 1 else 0, axis =1)
+	s2 =df0.apply(lambda x: gene_multinom_one_label([0.5,0.5], 0) if x.sep_child == 1 else 0, axis =1)
+	s3 =df0.apply(lambda x: gene_multinom_one_label([0.5,0.5], 0) if x.change_job_num >= 3 else 0, axis =1)
+	s4 =df0.apply(lambda x: gene_multinom_one_label([0.9,0.1], 0) if x.ave_leave_persons_cur_dept >= 9 else 0, axis =1)
+	s = s1 + s2 + s3 + s4
+	res = s.apply(lambda x: 1 if x > 0 else 0)
+	return res
+df.loc[:,'res'] = gen_res(df)
+
+##simulate result for 6-month variable, we should have 2 values for each employee
+#but for simplicity, we only have 3 variables for each field: the mean, the last, and the changing rate
+# 'job_satistication':['psy' , 6], ******
+# 'emotional_burnout':[ 'psy', 6],******
+# 'job_avoidance':[ 'psy', 6],******
+# 'low_achievement':['psy' , 6],******
+# 'outer_pressure':['psy' , 6],******
+# 'inner_pressure':['psy' , 6],******
+# 'depression_index':['psy' , 6],
+# 'psychatric_index':['psy' , 6],
+# 'pressure_vul':[ 'psy', 6],
+# 'emotion_stability':[ 'psy', 6],
+# 'subhealth_state':['psy' , 6],
+# 'psy_stress_event':[ 'psy', 6],
+# 'physical_index':['psy' , 6],
+
+def gen_6_month_data_non_important(mean, std, size, limit, field, rounding = 0):
+	'''this function automatically works on df, and add 3 fields to it'''
+	s1 = gene_normal_with_limit(mean, std, N, limit, rounding = rounding)
+	s2 = gene_normal_with_limit(mean, std, N, limit, rounding = rounding)
+	s_rate = s2 - s1
+	s_aver = (s2+s1)/2.0
+	df.loc[:, field+'_last'] = s2
+	df.loc[:, field+'_aver'] = s_aver
+	df.loc[:, field+'_rate'] = s_rate
+
+
+
+# 'depression_index':['psy' , 6], :: 8-32
+gen_6_month_data_non_important(20, 4, N, [8,32],'depression_index', rounding = 0)
+# 'psychatric_index':['psy' , 6],
+gen_6_month_data_non_important(30, 10, N, [10,50],'psychatric_index', rounding = 0)
+# 'pressure_vul':[ 'psy', 6],
+gen_6_month_data_non_important(20, 5, N, [8,40],'pressure_vul', rounding = 0)
+# 'emotion_stability':[ 'psy', 6],
+gen_6_month_data_non_important(40, 15, N, [13,65],'emotion_stability', rounding = 0)
+# 'subhealth_state':['psy' , 6],
+gen_6_month_data_non_important(50, 25, N, [0,100],'subhealth_state', rounding = 0)
+# 'psy_stress_event':[ 'psy', 6],
+gen_6_month_data_non_important(700, 200, N, [0,1440],'psy_stress_event', rounding = 0)
+# 'physical_index':['psy' , 6],
+gen_6_month_data_non_important(100, 15, N, [50,200],'physical_index', rounding = 0)
+
+
+# 'job_satistication':['psy' , 6], ******
+# 'emotional_burnout':[ 'psy', 6],******
+# 'job_avoidance':[ 'psy', 6],******
+# 'low_achievement':['psy' , 6],******
+# 'outer_pressure':['psy' , 6],******
+# 'inner_pressure':['psy' , 6],******
+	
+
+
+def gen_6_month_data_important(limit, cut, upper, field, rounding = 0):
+	'''this function automatically works on df, and add 3 fields to it;
+	upper means the abnormal is in the upper area; 
+	cut the bound for decding where is the abnormal area
+	limit is the range of the values for that specific field 
+	'''
+	if upper:
+		s_last = df.res.apply(lambda x: gene_normal_with_limit((limit[1]+cut)/2.0, (limit[1]-cut)/2.0, 1, [cut, limit[1]], rounding = rounding)[0] if x == 1 \
+			else gene_normal_with_limit((limit[0]+cut)/2.0, (cut-limit[0])/2.0, 1, [limit[0], cut], rounding = rounding)[0])
+		s_rate = df.res.apply(lambda x: gene_normal_with_limit((limit[1]-limit[0])/4.0, (limit[1]-limit[0])/5.0, 1, [1, (limit[1]-limit[0])], rounding = rounding)[0] if x == 1 \
+			else gene_normal_with_limit(0, (limit[1]-limit[0])/5.0, 1, [-(limit[1]-limit[0])/2.0, (limit[1]-limit[0])/2.0], rounding = rounding)[0])
+		s_aver = s_last - (s_rate/2.0).astype(int)	
+	else:
+		s_last = df.res.apply(lambda x: gene_normal_with_limit((limit[0]+cut)/2.0, (cut-limit[0])/2.0, 1, [limit[0], cut], rounding = rounding)[0] if x == 1 \
+			else gene_normal_with_limit((limit[1]+cut)/2.0, (limit[1]-cut)/2.0, 1, [cut, limit[1]], rounding = rounding)[0])
+		s_rate = df.res.apply(lambda x: gene_normal_with_limit(-(limit[1]-limit[0])/4.0, (limit[1]-limit[0])/5.0, 1, [-(limit[1]-limit[0]), -1], rounding = rounding)[0] if x == 1 \
+			else gene_normal_with_limit(0, (limit[1]-limit[0])/5.0, 1, [-(limit[1]-limit[0])/2.0, (limit[1]-limit[0])/2.0], rounding = rounding)[0])
+		s_aver = s_last - (s_rate/2.0).astype(int)	
+	df.loc[:, field+'_last'] = s_last
+	df.loc[:, field+'_aver'] = s_aver
+	df.loc[:, field+'_rate'] = s_rate
+
+# 'job_satistication':['psy' , 6], ******
+gen_6_month_data_important([1,10], 3, False, 'job_satistication',  rounding = 0)
+#test the simulated result
+# sk =df.loc[:, ['res','job_satistication_aver', 'job_satistication_rate', 'job_satistication_last']]
+# sk.groupby('res').apply(np.mean)
+
+# 'emotional_burnout':[ 'psy', 6],******
+gen_6_month_data_important([5,35], 23, True, 'emotional_burnout',  rounding = 0)
+# sk =df.loc[:, ['res','emotional_burnout_aver', 'emotional_burnout_rate', 'emotional_burnout_last']]
+# print sk.groupby('res').apply(np.mean)
+
+# 'job_avoidance':[ 'psy', 6],******
+gen_6_month_data_important([5,35], 18, True, 'job_avoidance',  rounding = 0)
+# 'low_achievement':['psy' , 6],******
+gen_6_month_data_important([5,35], 18, True, 'low_achievement',  rounding = 0)
+# 'outer_pressure':['psy' , 6],******
+gen_6_month_data_important([0,21], 15, True, 'outer_pressure',  rounding = 0)
+# 'inner_pressure':['psy' , 6],******
+gen_6_month_data_important([0,24], 17, True, 'inner_pressure',  rounding = 0)
+
+
+##````````simulate df3 below
+##approximately use the function for 6month features
+# 'goal_individual_rate_quarter':['wok' , 3],******
+gen_6_month_data_important([40,140], 80, False, 'goal_individual_rate_quarter',  rounding = 0)
+# 'goal_company_rate_quarter':[ 'wok', 3]******
+df.loc[:,'goal_company_rate_quarter'] = 107
+
+
 
 
 
