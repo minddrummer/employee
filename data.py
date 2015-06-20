@@ -11,7 +11,7 @@ import sklearn as sk
 import matplotlib.pyplot as plt
 import random
 
-
+np.random.seed(0077)
 #in the following dict, 99 means one time, 1 means one month, 6 means half year, and 12 means one year
 col_dict = {
 'gender':['demo' , 99],
@@ -135,7 +135,7 @@ def gene_multinom_one_label(ratio_lst, start_value, printing = False):
 
 
 ###parameter settings:
-N = 700
+N = 1264
 np.random.seed(777)
 
 
@@ -190,7 +190,7 @@ def sep_child(x):
 	else:
 		return 0
 df99.loc[:,'sep_child'] = df99.apply(sep_child, axis = 1)
-df99.loc[:, 'sig_event'] = np.NaN
+df99.loc[:, 'sig_event'] = 0
 df99.loc[:, 'month'] = 6
 df99.loc[:, 'location'] = 1
 
@@ -382,6 +382,129 @@ df.loc[:,'goal_company_rate_quarter'] = 107
 
 
 
+##```````````simulate on df1 below
+filter(lambda x: col_dict[x][1]==1, col_dict.keys())
 
+ # 'pos_change_num',******
+ # 'raise_percent',******
+ # 'off_work_num',******
+ # 'off_work_time_gap',******
+ # 'off_work_time',******
+ # 'punish_num',******
+ # 'degrade_num',******
+ # 'subj_efficiency',******
+ # 'raise_num',******
+ # 'change_boss',******
+ # 'job_intensity',******
+ # 'promotion_num',******
+ # 'de_salary_num',******
+ # 'obj_efficiency',******
+ # 'de_salary_precent']******
+
+
+def gen_every_month_data_important_continuous(limit, cut, upper, field, rounding = 0):
+	'''this function automatically works on df, and add 3 fields to it;
+	upper means the abnormal is in the upper area; 
+	cut the bound for decding where is the abnormal area
+	limit is the range of the values for that specific field 
+	'''
+	if upper: # upper means in the upper-zone, it is more likely to leave the current job
+		s_last = df.res.apply(lambda x: gene_normal_with_limit((limit[1]+cut)/2.0, (limit[1]-cut)/2.0, 1, [cut, limit[1]], rounding = rounding)[0] if x == 1 \
+			else gene_normal_with_limit((limit[0]+cut)/2.0, (cut-limit[0])/2.0, 1, [limit[0], cut], rounding = rounding)[0])
+		s_aver = df.res.apply(lambda x: gene_normal_with_limit((limit[0]+limit[1])/2.0, (limit[1]-limit[0])/4.0, 1, [limit[0], limit[1]], rounding = rounding)[0] if x == 1 \
+			else gene_normal_with_limit((limit[0]+cut)/2.0, (cut-limit[0])/2.0, 1, [limit[0], cut], rounding = rounding)[0])
+		s_rate = (s_last - s_aver)/6.0
+	else:
+		s_last = df.res.apply(lambda x: gene_normal_with_limit((limit[0]+cut)/2.0, (cut-limit[0])/2.0, 1, [limit[0], cut], rounding = rounding)[0] if x == 1 \
+			else gene_normal_with_limit((limit[1]+cut)/2.0, (limit[1]-cut)/2.0, 1, [cut, limit[1]], rounding = rounding)[0])
+		s_aver = df.res.apply(lambda x: gene_normal_with_limit((limit[0]+limit[1])/2.0, (limit[1]-limit[0])/4.0, 1, [limit[0], limit[1]], rounding = rounding)[0] if x == 1 \
+			else gene_normal_with_limit((limit[1]+cut)/2.0, (limit[1]-cut)/2.0, 1, [cut, limit[1]], rounding = rounding)[0])
+		s_rate = (s_last - s_aver)/6.0
+	df.loc[:, field+'_last'] = s_last
+	df.loc[:, field+'_aver'] = s_aver
+	df.loc[:, field+'_rate'] = s_rate
+
+
+
+ # 'pos_change_num',******
+gen_every_month_data_important_continuous([0,5], 4, True, 'pos_change_num', rounding = 0)
+df.loc[:, 'pos_change_num_last'] = df.pos_change_num_last.apply(lambda x: 0 if x<=4 else x-4)
+df.loc[:, 'pos_change_num_aver'] = df.pos_change_num_aver.apply(lambda x: 0 if x<=4 else x-4)
+df.loc[:, 'pos_change_num_rate'] = (df.pos_change_num_last - df.pos_change_num_aver)/6.0
+ # 'raise_percent',******
+gen_every_month_data_important_continuous([0,50], 10, False, 'raise_percent', rounding = 0)
+df.loc[:, 'raise_percent_last'] = df.raise_percent_last.apply(lambda x: 0 if x<=40 else x-40)
+df.loc[:, 'raise_percent_aver'] = df.raise_percent_aver.apply(lambda x: 0 if x<=40 else x-40)
+df.loc[:, 'raise_percent_rate'] = (df.raise_percent_last - df.raise_percent_aver)/6.0
+ # 'off_work_num',******
+gen_every_month_data_important_continuous([0,25], 8, True, 'off_work_num', rounding = 0)
+df.loc[:, 'off_work_num_last'] = df.off_work_num_last.apply(lambda x: 0 if x<=12 else x-12)
+df.loc[:, 'off_work_num_aver'] = df.off_work_num_aver.apply(lambda x: 0 if x<=12 else x-12)
+df.loc[:, 'off_work_num_rate'] = (df.off_work_num_last - df.off_work_num_aver)/6.0
+ # 'off_work_time_gap',******
+gen_every_month_data_important_continuous([0,29], 3, False, 'off_work_time_gap', rounding = 0)
+df.loc[:, 'off_work_time_gap_last'] = df.off_work_time_gap_last.apply(lambda x: x if x<=3 else 0)
+df.loc[:, 'off_work_time_gap_aver'] = df.off_work_time_gap_aver.apply(lambda x: x if x<=3 else 0)
+df.loc[:, 'off_work_time_gap_rate'] = (df.off_work_time_gap_last - df.off_work_time_gap_aver)/6.0
+ # 'off_work_time',******
+gen_every_month_data_important_continuous([0,60], 10, True, 'off_work_time', rounding = 0)
+# 'punish_num',******
+df.loc[:,'punish_num'] = df.res.apply(lambda x: gene_multinom_one_label([0.97,0.03], 0) if x == 1 else 0)
+# 'degrade_num',******
+df.loc[:,'degrade_num'] = df.res.apply(lambda x: gene_multinom_one_label([0.98,0.02], 0) if x == 1 else 0)
+# 'subj_efficiency',******
+gen_every_month_data_important_continuous([1,10], 4, False, 'subj_efficiency', rounding = 0)
+# 'raise_num',******
+df.loc[:,'raise_num'] = df.res.apply(lambda x: gene_multinom_one_label([0.5,0.5], 0) if x == 1 else 1)
+# 'change_boss',******
+df.loc[:,'change_boss'] = df.res.apply(lambda x: gene_multinom_one_label([0.95,0.05], 0) if x == 1 else 0)
+# 'job_intensity',******
+gen_every_month_data_important_continuous([1,10], 7, True, 'job_intensity', rounding = 0)
+# 'promotion_num',****** 0 means no promotion, and 1 means 1time promotion
+df.loc[:,'promotion_num'] = df.res.apply(lambda x: gene_multinom_one_label([0.95,0.05], 0) if x == 1 else  gene_multinom_one_label([0.7,0.3], 0))
+# 'de_salary_num',******
+df.loc[:,'de_salary_num'] = df.res.apply(lambda x: gene_multinom_one_label([0.96,0.04], 0) if x == 1 else  0)
+# 'obj_efficiency',******
+gen_every_month_data_important_continuous([1,10], 3, False, 'obj_efficiency', rounding = 0)
+# 'de_salary_percent']******
+df.loc[:,'de_salary_percent'] = df.de_salary_num.apply(lambda x: gene_multinom_one_label([0.25,0.25,0.25, 0.25], 8) if x == 1 else 0)
+
+
+
+
+def gen_every_month_data_NON_important_continuous(limit, field, rounding = 0):
+	'''this function automatically works on df, and add 3 fields to it;
+	limit is the range of the values for that specific field 
+	'''
+	s_last = df.res.apply(lambda x: gene_normal_with_limit((limit[1]+limit[0])/2.0, (limit[1]-limit[0])/4.0, 1, [limit[0], limit[1]], rounding = rounding)[0])
+	s_aver = df.res.apply(lambda x: gene_normal_with_limit((limit[1]+limit[0])/2.0, (limit[1]-limit[0])/4.0, 1, [limit[0], limit[1]], rounding = rounding)[0])
+	s_rate = (s_last - s_aver)/6.0
+	df.loc[:, field+'_last'] = s_last
+	df.loc[:, field+'_aver'] = s_aver
+	df.loc[:, field+'_rate'] = s_rate
+
+
+# 'type_sale_percent',
+df.loc[:,'type_sale_percent'] = df.loc[:,'dept'].map({0:0.12, 1:0.22, 2:0.17, 3:0.08, 4:0.41})
+# 'late_work_time',
+gen_every_month_data_NON_important_continuous([0,8], 'late_work_time', rounding = 1)
+#  'late_work_num',
+gen_every_month_data_NON_important_continuous([0,10], 'late_work_num', rounding = 0)
+# 'salary',
+gen_every_month_data_NON_important_continuous([3400,30000], 'salary', rounding = 0)
+# 'bonus',
+gen_every_month_data_NON_important_continuous([2000,20000], 'salary', rounding = 0)
+# 'regional_sale_comparison_rate',
+gen_every_month_data_NON_important_continuous([0,100], 'regional_sale_comparison_rate', rounding = 0)
+# 'overall_score',
+gen_every_month_data_NON_important_continuous([40,100], 'overall_score', rounding = 0)
+#  'regional_sale_percent',
+gen_every_month_data_NON_important_continuous([0,100], 'regional_sale_percent', rounding = 0)
+# ['job_dept',
+df.loc[:, 'job_dept'] = gene_multinom(N, [0.2,0.3,0.1,0.3,0.1], start_value=0, printing = False)
+# 'job_type',
+df.loc[:, 'job_type'] = gene_multinom(N, [0.25,0.45,0.3], start_value=0, printing = False)
+
+df.to_csv('data.csv', index = False)
 
 
