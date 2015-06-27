@@ -34,11 +34,11 @@ tmpy2 = reduce(lambda total,x: total+x,map(lambda x: [x,x], y2))
 
 p1.segment(tmpx, tmpy, x1, y1, line_width=5, line_color="gray",)
 p1.segment(tmpx2,tmpy2,x3,y3,line_width=5,line_color = 'gray',)
-p1.circle(x0, y0, size=12, fill_color="#0000FF", line_color="gray", line_width=3, )
-p1.circle(x1, y1, size=12, fill_color= '#00FFFF', line_color="gray", line_width=3, )
-p1.circle(x3_yes, y3_yes, size=12, fill_color= 'red', line_color="gray", line_width=3, )
-p1.circle(x3_no, y3_no, size=12, fill_color= 'green', line_color="gray", line_width=3, )
-p1.circle([60,60,60,60,60,60,60], [50,70,90,110,130,150,170], size=5, fill_color= 'black',)
+p1.circle(x0, y0, size=12, fill_color="#0000FF", line_color="gray", line_width=3, fill_alpha=0.75)
+p1.circle(x1, y1, size=12, fill_color= '#00FFFF', line_color="gray", line_width=3, fill_alpha=0.75)
+p1.circle(x3_yes, y3_yes, size=12, fill_color= 'red', line_color="gray", line_width=3, fill_alpha=0.75)
+p1.circle(x3_no, y3_no, size=12, fill_color= 'green', line_color="gray", line_width=3, fill_alpha=0.75)
+p1.circle([60,60,60,60,60,60,60], [50,70,90,110,130,150,170], size=5, fill_color= 'black',fill_alpha=0.75)
 
 
 #p1.xaxis.axis_label = "L"
@@ -51,8 +51,8 @@ result = ['Stay']*12
 result[1] = 'Leave';result[6] = 'Leave';result[11] = 'Leave'
 p1.text([105]*12,list(np.array(y3)-10), result, text_font_size = '12pt', text_color='black')#,text_font_style='bold')
 p1.quad(top=[500], bottom=[400], left=[150], right=[200], fill_alpha = 0, line_width = 4, color="#0099CC")
-p1.circle([165],[470],fill_color = 'green', line_color = 'gray',size = 12,line_width=3,)
-p1.circle([165],[430],fill_color = 'red', line_color = 'gray',size = 12,line_width=3,)
+p1.circle([165],[470],fill_color = 'green', fill_alpha=0.75, line_color = 'gray',size = 12,line_width=3,)
+p1.circle([165],[430],fill_color = 'red',  fill_alpha=0.75, line_color = 'gray',size = 12,line_width=3,)
 p1.text([170],[458], ['Stay'], text_font_size = '12pt', text_color='black', text_font_style='bold')
 p1.text([170],[418], ['Leave'], text_font_size = '12pt', text_color='black', text_font_style='bold')
 
