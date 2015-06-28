@@ -10,7 +10,7 @@ from sklearn import preprocessing
 from sklearn.preprocessing import Imputer
 from sklearn import linear_model as lm
 from sklearn.ensemble import AdaBoostClassifier as Ada
-
+import mpld3
 
 #(1264, 126)
 df = pd.read_csv('data.csv')
@@ -85,6 +85,7 @@ plt.yticks(pos, imp_var)
 plt.xlabel('Importance')
 plt.title('The top 10 important variables for employee turnout for Boosting Tree')
 plt.grid(True)
+#mpld3.show()
 #plt.tight_layout()
 fig.savefig('top10importance_boostingTree.png', bbox_inches='tight')
 plt.close()
